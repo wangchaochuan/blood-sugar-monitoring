@@ -1,8 +1,0 @@
-{
-  "enablePullDownRefresh": false,
-  "usingComponents": {
-    "tabbar": "/components/tabbar/tabbar",
-    "u-loading-icon": "/uni_modules/uview-ui/components/u-loading-icon/u-loading-icon",
-    "u-empty": "/uni_modules/uview-ui/components/u-empty/u-empty"
-  }
-}

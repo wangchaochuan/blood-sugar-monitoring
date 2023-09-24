@@ -4,6 +4,7 @@
 /node_modules
 /uni_modules
 /uniCloud-aliyun
+/unpackage
 /.pnp
 .pnp.js
 
