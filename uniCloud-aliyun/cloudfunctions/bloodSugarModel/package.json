@@ -1,0 +1,7 @@
+{
+  "name": "bloodSugarModel",
+  "dependencies": {},
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}
