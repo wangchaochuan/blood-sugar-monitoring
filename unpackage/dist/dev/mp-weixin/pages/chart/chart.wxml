@@ -1,0 +1,1 @@
+<view class="container"><tabbar vue-id="2a9a2cfc-1" current="{{3}}" bind:__l="__l"></tabbar><scroll-view class="chart-container"><qiun-data-charts vue-id="2a9a2cfc-2" type="line" opts="{{opts}}" chartData="{{chartData}}" ontouch="{{true}}" bind:__l="__l"></qiun-data-charts></scroll-view></view>
