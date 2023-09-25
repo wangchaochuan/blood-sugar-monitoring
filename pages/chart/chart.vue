@@ -8,6 +8,7 @@
 </template>
 
 <script>
+	import dayjs from "dayjs";
 	export default {
 		data() {
 			return {
@@ -39,32 +40,54 @@
 				}
 			};
 		},
+		computed: {
+			model() {
+				return this.$store.state.bloodSugarModel;
+			}
+		},
 		onReady() {
 			this.getServerData();
 		},
 		methods: {
-			getServerData() {
-				//模拟从服务器获取数据时的延时
-				setTimeout(() => {
-					//模拟服务器返回数据，如果数据格式和标准格式不同，需自行按下面的格式拼接
-					let res = {
-						categories: ["2018", "2019", "2020", "2021", "2022", "2023"],
-						series: [{
-								name: "成交量A",
-								data: [35, 8, 25, 37, 4, 20]
-							},
-							{
-								name: "成交量B",
-								data: [70, 40, 65, 100, 44, 68]
-							},
-							{
-								name: "成交量C",
-								data: [100, 80, 95, 150, 112, 132]
-							}
-						]
-					};
-					this.chartData = JSON.parse(JSON.stringify(res));
-				}, 500);
+			async getServerData() {
+				const user = uni.getStorageSync("user")
+				const response = await this.model.getRecordList(user?._id);
+				const data = {
+					series: []
+				};
+				const list = response.detail;
+				data.categories = list.map(v => dayjs(v.date).format("YYYY-MM-DD"));
+				const keyList = [{
+					key: "limosis",
+					label: "空腹血糖"
+				}, {
+					key: "afterBreakfast",
+					label: "早餐后血糖"
+				}, {
+					key: "beforeLunch",
+					label: "午餐前血糖"
+				}, {
+					key: "afterLunch",
+					label: "午餐后血糖"
+				}, {
+					key: "beforeDinner",
+					label: "晚餐前血糖"
+				}, {
+					key: "afterDinner",
+					label: "晚餐后血糖"
+				}, {
+					key: "beforeSleep",
+					label: "睡前血糖"
+				}];
+				keyList.forEach(v => {
+					const name = v.label;
+					const array = list.map(k => k[v.key]?.value || 0)
+					data.series.push({
+						name,
+						data: array
+					})
+				})
+				this.chartData = JSON.parse(JSON.stringify(data));
 			},
 		}
 	};

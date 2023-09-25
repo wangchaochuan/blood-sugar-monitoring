@@ -3,24 +3,19 @@
 		{
 			"path": "pages/add/add",
 			"style": {
+				"navigationBarTitleText": "添加血糖记录",
 				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/chart/chart",
 			"style": {
+				"navigationBarTitleText": "血糖波动可视化",
 				"enablePullDownRefresh": false
 			}
 
 		}, {
 			"path": "pages/cookbook/cookbook",
 			"style": {
-				"enablePullDownRefresh": false
-			}
-
-		}, {
-			"path": "pages/detail/detail",
-			"style": {
-				"navigationBarTitleText": "详情",
 				"enablePullDownRefresh": false
 			}
 
@@ -39,10 +34,16 @@
 		}, {
 			"path": "pages/personal-center/personal-center",
 			"style": {
-				"navigationBarTitleText": "",
+				"navigationBarTitleText": "个人中心",
 				"enablePullDownRefresh": false
 			}
 
+		}, {
+			"path": "pages/edit/edit",
+			"style": {
+				"navigationBarTitleText": "编辑血糖情况",
+				"enablePullDownRefresh": false
+			}
 		}
 	],
 	"globalStyle": {
