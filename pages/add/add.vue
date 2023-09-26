@@ -154,6 +154,7 @@
 							title: "添加记录成功"
 						})
 						setTimeout(() => {
+							this.reset();
 							uni.switchTab({
 								url: "/pages/list/list"
 							})

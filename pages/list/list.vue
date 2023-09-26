@@ -3,6 +3,14 @@
 		<tabbar :current="1"></tabbar>
 		<u-loading-icon size="24" color="#4c5cdb" :show="loading"></u-loading-icon>
 		<u-empty mode="history" :show="list.length===0" text="暂无历史记录" marginTop="36"></u-empty>
+		<u--form v-if="list.length>0" labelPosition="top" :model="condition" ref="uForm" :labelWidth="80"
+			labelAlign="left">
+			<u-form-item label="日期范围" prop="range" @click="showRangePicker=true">
+				<u-input v-model="condition.range" border="bottom" placeholder="请选择查询起止日期,默认查询最近7天" inputAlign="right"
+					readonly></u-input>
+				<u-icon slot="right" name="arrow-right"></u-icon>
+			</u-form-item>
+		</u--form>
 		<scroll-view v-if="list.length>0">
 			<view v-for="item in list" :key="item._id">
 				<view class="card">
@@ -33,6 +41,10 @@
 				</view>
 			</view>
 		</scroll-view>
+		<u-calendar :show="showRangePicker" :default-date="defaultDate" title="日期范围" :min-date="minDate"
+			:max-date="maxDate" mode="range" :closeOnClickOverlay="true" :allowSameDay="true" :monthNum="4"
+			@close="showRangePicker=false" @confirm="confirm">
+		</u-calendar>
 	</view>
 </template>
 
@@ -43,6 +55,13 @@
 			return {
 				loading: false,
 				list: [],
+				defaultDate: [],
+				minDate: dayjs().subtract(90, 'day').format("YYYY-MM-DD"),
+				maxDate: dayjs().format("YYYY-MM-DD"),
+				condition: {
+					range: dayjs().subtract(6, 'day').format("YYYY-MM-DD") + "~" + dayjs().format("YYYY-MM-DD")
+				},
+				showRangePicker: false,
 				options: [{
 					text: "编辑",
 					style: {
@@ -109,27 +128,45 @@
 					beforeSleep: "睡前"
 				}
 				const tag = map[k];
-				const date = dayjs(d).format("YYYY-MM-DD")
+				const date = dayjs(d).format("YYYY-MM-DD");
 				const record = {
 					...v,
 					tag,
 					date,
+					dinnerFood: v.food
 				}
 				const params = Object.keys(record).reduce((value, key) => `${value}&${key}=${record[key]}`, "")
 				uni.navigateTo({
 					url: `/pages/edit/edit?${params}`
 				})
+			},
+			confirm(e) {
+				this.condition.range = e[0] + "~" + e[e.length - 1];
+				this.showRangePicker = false;
+				this.getData()
+			},
+			async getData() {
+				try {
+					this.loading = true;
+					const user = uni.getStorageSync("user")
+					const [start, end] = this.condition.range.split('~');
+					const response = await this.model.getRecordList(user?._id, dayjs(start).valueOf(),
+						dayjs(end)
+						.valueOf());
+					this.list = response.detail.reverse();
+				} catch (e) {
+					//TODO handle the exception
+					console.log(e, "error")
+				} finally {
+					this.loading = false;
+				}
 			}
 		},
-		async onShow() {
-			try {
-				this.loading = true;
-				const user = uni.getStorageSync("user")
-				const response = await this.model.getRecordList(user?._id);
-				this.list = response.detail;
-			} catch {} finally {
-				this.loading = false;
+		onShow() {
+			for (let i = 6; i >= 0; i--) {
+				this.defaultDate.push(dayjs().subtract(i, 'day').format("YYYY-MM-DD"))
 			}
+			this.getData();
 		}
 	}
 </script>
