@@ -92,11 +92,6 @@
 				}]
 			};
 		},
-		computed: {
-			model() {
-				return this.$store.state.bloodSugarModel;
-			}
-		},
 		methods: {
 			formatDate(date) {
 				return dayjs(date).format("YYYY-MM-DD")
@@ -148,15 +143,27 @@
 			async getData() {
 				try {
 					this.loading = true;
-					const user = uni.getStorageSync("user")
+					const userId = uni.getStorageSync("user")?._id;
 					const [start, end] = this.condition.range.split('~');
-					const response = await this.model.getRecordList(user?._id, dayjs(start).valueOf(),
-						dayjs(end)
-						.valueOf());
-					this.list = response.detail.reverse();
+					const startTime = dayjs(start).valueOf();
+					const endTime = dayjs(end).valueOf();
+					const db = uniCloud.database();
+					const _ = db.command;
+					if (userId) {
+						const response = await db.collection("blood-sugar").orderBy("date desc").where({
+							userId,
+							date: _.gte(startTime).and(_.lte(endTime))
+						}).get();
+						if (response.result.errCode === 0) {
+							const list = response.result.data;
+							this.list = list;
+						}
+					}
 				} catch (e) {
 					//TODO handle the exception
-					console.log(e, "error")
+					uni.showToast({
+						title: e.message
+					})
 				} finally {
 					this.loading = false;
 				}

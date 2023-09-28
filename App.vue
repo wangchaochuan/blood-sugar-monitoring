@@ -9,7 +9,6 @@
 			uni.hideTabBar({});
 			try {
 				const user = uni.getStorageSync("user")
-				console.log(user, "init")
 				if (!user) {
 					const {
 						code
@@ -17,7 +16,6 @@
 						provider: "weixin"
 					});
 					const response = await this.userModel.login(code);
-					console.log(response, "set-user");
 					if (response?.detail?.user) {
 						uni.setStorageSync("user", response.detail.user)
 					}

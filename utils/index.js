@@ -3,6 +3,7 @@ export const formatRecord = (record) => {
 		value,
 		tag,
 		date,
+		dateStr,
 		time,
 		remark,
 		dinnerTime,
@@ -11,6 +12,7 @@ export const formatRecord = (record) => {
 	const userId = uni.getStorageSync("user")._id;
 	const result = {
 		date,
+		dateStr,
 		userId,
 	};
 	switch (tag) {

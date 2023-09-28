@@ -95,9 +95,6 @@
 			tagList() {
 				return this.$store.state.tagList;
 			},
-			model() {
-				return this.$store.state.bloodSugarModel;
-			}
 		},
 		watch: {
 			"record.tag": {
@@ -143,13 +140,32 @@
 					const record = {
 						...this.record,
 						value: Number(this.record.value),
-						date: dayjs(this.record.date).startOf('day').valueOf()
+						date: dayjs(this.record.date).startOf('day').valueOf(),
+						dateStr: dayjs(this.record.date).format("YYYY-MM-DD")
 					}
 					const params = formatRecord(record);
+					const db = uniCloud.database();
+					const _ = db.command;
+					const collection = db.collection("blood-sugar");
 					const {
-						errCode
-					} = this.model.addRecord(params);
-					if (!errCode) {
+						userId,
+						date
+					} = params;
+					const response = await collection.where(_.and({
+						userId
+					}, {
+						date
+					})).get()
+					let res = null;
+					// 已经存在的数据，更新即可
+					if (response?.result?.affectedDocs) {
+						const _id = response.result.data[0]._id;
+						res = await collection.doc(_id).update(params);
+					} else {
+						// 否则新增
+						res = await collection.add(params)
+					}
+					if (res?.result?.errCode === 0) {
 						uni.showToast({
 							title: "添加记录成功"
 						})
@@ -161,7 +177,11 @@
 						}, 1500)
 					}
 				} catch (e) {
+					console.error(e.message)
 					//TODO handle the exception
+					uni.showToast({
+						title: e.message
+					})
 				}
 			}
 		},

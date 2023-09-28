@@ -9,7 +9,7 @@
 			</u-form-item>
 		</u--form>
 		<scroll-view class="chart-container">
-			<qiun-data-charts type="line" :opts="opts" :chartData="chartData" />
+			<qiun-data-charts type="line" :canvas2d="true" :ontouch="true" :opts="opts" :chartData="chartData" />
 		</scroll-view>
 		<u-calendar :show="showRangePicker" :default-date="defaultDate" title="日期范围" :min-date="minDate"
 			:max-date="maxDate" mode="range" :closeOnClickOverlay="true" :allowSameDay="true" :monthNum="4"
@@ -25,6 +25,7 @@
 			return {
 				chartData: {},
 				defaultDate: [],
+				enableScroll: true, //开启拖拽
 				minDate: dayjs().subtract(90, 'day').format("YYYY-MM-DD"),
 				maxDate: dayjs().format("YYYY-MM-DD"),
 				condition: {
@@ -37,10 +38,12 @@
 						"#ea7ccc"
 					],
 					padding: [15, 10, 0, 15],
-					enableScroll: false,
+					enableScroll: true,
 					legend: {},
 					xAxis: {
-						disableGrid: true
+						disableGrid: true,
+						labelCount: 7,
+						itemCount: 3,
 					},
 					yAxis: {
 						gridType: "dash",
@@ -56,15 +59,12 @@
 				}
 			};
 		},
-		computed: {
-			model() {
-				return this.$store.state.bloodSugarModel;
-			}
-		},
 		onReady() {
 			for (let i = 6; i >= 0; i--) {
 				this.defaultDate.push(dayjs().subtract(i, 'day').format("YYYY-MM-DD"))
 			}
+		},
+		onShow() {
 			this.getServerData();
 		},
 		methods: {
@@ -74,48 +74,56 @@
 				this.getServerData();
 			},
 			async getServerData() {
-				const user = uni.getStorageSync("user")
-				console.log(user, "get-user")
+				const userId = uni.getStorageSync("user")?._id;
 				const [start, end] = this.condition.range.split('~');
-				const response = await this.model.getRecordList(user?._id, dayjs(start).valueOf(),
-					dayjs(end).valueOf());
+				const startTime = dayjs(start).valueOf();
+				const endTime = dayjs(end).valueOf();
 				const data = {
 					series: []
 				};
-				const list = response.detail;
-				console.log(list)
-				data.categories = list.map(v => dayjs(v.date).format("YYYY-MM-DD"));
-				const keyList = [{
-					key: "limosis",
-					label: "空腹血糖"
-				}, {
-					key: "afterBreakfast",
-					label: "早餐后血糖"
-				}, {
-					key: "beforeLunch",
-					label: "午餐前血糖"
-				}, {
-					key: "afterLunch",
-					label: "午餐后血糖"
-				}, {
-					key: "beforeDinner",
-					label: "晚餐前血糖"
-				}, {
-					key: "afterDinner",
-					label: "晚餐后血糖"
-				}, {
-					key: "beforeSleep",
-					label: "睡前血糖"
-				}];
-				keyList.forEach(v => {
-					const name = v.label;
-					const array = list.map(k => k[v.key]?.value || 0)
-					data.series.push({
-						name,
-						data: array
-					})
-				})
-				this.chartData = JSON.parse(JSON.stringify(data));
+				const db = uniCloud.database();
+				const _ = db.command;
+				if (userId) {
+					const response = await db.collection("blood-sugar").where({
+						userId,
+						date: _.gte(startTime).and(_.lte(endTime))
+					}).get();
+					if (response.result.errCode === 0) {
+						const list = response.result.data;
+						data.categories = list.map(v => dayjs(v.date).format("YYYY-MM-DD"));
+						const keyList = [{
+							key: "limosis",
+							label: "空腹血糖"
+						}, {
+							key: "afterBreakfast",
+							label: "早餐后血糖"
+						}, {
+							key: "beforeLunch",
+							label: "午餐前血糖"
+						}, {
+							key: "afterLunch",
+							label: "午餐后血糖"
+						}, {
+							key: "beforeDinner",
+							label: "晚餐前血糖"
+						}, {
+							key: "afterDinner",
+							label: "晚餐后血糖"
+						}, {
+							key: "beforeSleep",
+							label: "睡前血糖"
+						}];
+						keyList.forEach(v => {
+							const name = v.label;
+							const array = list.map(k => k[v.key]?.value || 0)
+							data.series.push({
+								name,
+								data: array
+							})
+						})
+						this.chartData = JSON.parse(JSON.stringify(data));
+					}
+				}
 			},
 		}
 	};
@@ -128,7 +136,7 @@
 
 		.chart-container {
 			height: fit-content;
-			max-height: 100%;
+			max-height: 80%;
 		}
 	}
 </style>

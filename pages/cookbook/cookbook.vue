@@ -67,24 +67,6 @@
 				dinner: ""
 			};
 		},
-		methods: {
-			async login() {
-				const {
-					code
-				} = await uni.login({
-					provider: "weixin"
-				})
-				const model = this.$store.state.bloodSugarModel;
-				const params = {
-					js_code: code,
-					grant_type: "authorization_code",
-					appid: this.$store.state.appId,
-					secret: this.$store.state.appSecret
-				}
-				const data = await model.getOpenId(params);
-				console.log(data)
-			},
-		},
 		onLoad() {
 			const time = new Date();
 			const date = dayjs(time).format("YYYY-MM-DD");
@@ -130,10 +112,6 @@
 		display: flex;
 		flex-direction: column;
 		height: calc(100vh - 200rpx);
-
-		.login {
-			margin-bottom: 16rpx;
-		}
 	}
 
 	.cookbook {
